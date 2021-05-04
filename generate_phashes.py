@@ -77,6 +77,7 @@ def fast_phash(image, hash_size=16, highfreq_factor=4):
     dct = scipy.fft.dct(scipy.fft.dct(image, axis=0), axis=1)
     return diff(dct, hash_size)
 
+@jit(nopython=True)
 def bit_list_to_4_uint64(bit_list_256):
     uint64_arr=[]
     for i in range(4):
@@ -87,8 +88,9 @@ def bit_list_to_4_uint64(bit_list_256):
             else:
                 bit_list.append(0)
         uint64_arr.append(bit_list_to_int(bit_list))
-    return np.array(uint64_arr,dtype=np.uint64).dtype
+    return np.array(uint64_arr,dtype=np.uint64)
 
+@jit(nopython=True)
 def bit_list_to_int(bitlist):
      out = 0
      for bit in bitlist:
@@ -113,13 +115,13 @@ for file_name in file_names:
         continue
     new_images.append(file_name)
 
-def calc_hist(file_name):
+def calc_phash(file_name):
     file_id=int(file_name[:file_name.index('.')])
     phash=get_phash(IMAGE_PATH+"/"+file_name) 
     phash_bin=adapt_array(phash)
     print(file_name)
     return (file_id,phash_bin)
 
-hists=Parallel(n_jobs=-1)(delayed(calc_hist)(file_name) for file_name in new_images)
+hists=Parallel(n_jobs=-1)(delayed(calc_phash)(file_name) for file_name in new_images)
 conn.executemany('''INSERT INTO phashes(id, phash) VALUES (?,?)''', hists)
 conn.commit()
