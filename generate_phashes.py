@@ -2,12 +2,12 @@ import scipy.fft
 import cv2
 import numpy as np
 from numba import jit
-from os import listdir
+from os import listdir,remove
 from joblib import Parallel, delayed
 import sqlite3
 import io
 conn = sqlite3.connect('phashes.db')
-IMAGE_PATH="./../../../public/images"
+IMAGE_PATH="./../../../import/images"
 
 def create_table():
 	cursor = conn.cursor()
@@ -118,6 +118,7 @@ def calc_phash(file_name):
     query_image=cv2.imread(img_path,cv2.IMREAD_GRAYSCALE)
     if query_image is None:
         print(f'error reading {img_path}')
+        remove(img_path)
         return None
     phash=get_phash(query_image) 
     phash_bin=adapt_array(phash)
