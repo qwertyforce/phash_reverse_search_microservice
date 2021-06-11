@@ -28,7 +28,6 @@ def init_index():
     all_data=get_all_data()
     image_ids=np.array([np.int64(x[0]) for x in all_data])
     phashes=np.array([x[1] for x in all_data])
-    print(phashes.shape)
     if len(all_data)!=0:
         index.add_with_ids(phashes, image_ids)    
     print("Index is ready")

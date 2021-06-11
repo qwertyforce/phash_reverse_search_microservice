@@ -102,16 +102,6 @@ def get_phash(query_image):
     phash=bit_list_to_32_uint8(bit_list_256)
     return phash
 
-file_names=listdir(IMAGE_PATH)
-create_table()
-sync_db()
-new_images=[]
-for file_name in file_names:
-    file_id=int(file_name[:file_name.index('.')])
-    if check_if_exists_by_id(file_id):
-        continue
-    new_images.append(file_name)
-
 def calc_phash(file_name):
     file_id=int(file_name[:file_name.index('.')])
     img_path=IMAGE_PATH+"/"+file_name
@@ -124,10 +114,22 @@ def calc_phash(file_name):
     phash_bin=adapt_array(phash)
     print(file_name)
     return (file_id,phash_bin)
+    
+file_names=listdir(IMAGE_PATH)
+create_table()
+sync_db()
+new_images=[]
+
+for file_name in file_names:
+    file_id=int(file_name[:file_name.index('.')])
+    if check_if_exists_by_id(file_id):
+        continue
+    new_images.append(file_name)
 
 new_images=[new_images[i:i + 5000] for i in range(0, len(new_images), 5000)]
 for batch in new_images:
     phashes=Parallel(n_jobs=-1)(delayed(calc_phash)(file_name) for file_name in batch)
     phashes= [i for i in phashes if i] #remove None's
+    print("pushing data to db")
     conn.executemany('''INSERT INTO phashes(id, phash) VALUES (?,?)''', phashes)
     conn.commit()
