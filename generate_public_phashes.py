@@ -82,8 +82,7 @@ def diff(dct, hash_size):
 
 def fast_phash(image, hash_size=16, highfreq_factor=4):
     img_size = hash_size * highfreq_factor
-    image = cv2.resize(image, (img_size, img_size),
-                       interpolation=cv2.INTER_LINEAR)  # cv2.INTER_AREA
+    image = cv2.resize(image, (img_size, img_size), interpolation=cv2.INTER_LINEAR)  # cv2.INTER_AREA
     dct_data = dct(dct(image, axis=0), axis=1)
     return diff(dct_data, hash_size)
 
@@ -143,8 +142,7 @@ for file_name in file_names:
 
 new_images = [new_images[i:i + 5000] for i in range(0, len(new_images), 5000)]
 for batch in new_images:
-    phashes = Parallel(n_jobs=-1)(delayed(calc_phash)(file_name)
-                                  for file_name in batch)
+    phashes = Parallel(n_jobs=-1, verbose=1)(delayed(calc_phash)(file_name) for file_name in batch)
     phashes = [i for i in phashes if i]  # remove None's
     print("pushing data to db")
     conn.executemany('''INSERT INTO phashes(id, phash) VALUES (?,?)''', phashes)
